@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,11 +12,10 @@ import { formatDistanceToNow } from "date-fns";
 import { Clipboard, Share2, Paperclip, Image } from "lucide-react";
 import { toast } from "sonner";
 import { CodeBlock } from "@/components/code-block";
-import { use } from "react";
 
-export default function PastePage({ params }: { params: { id: string } }) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+export default function PastePage() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,17 +31,23 @@ export default function PastePage({ params }: { params: { id: string } }) {
 
   const copyToClipboard = () => {
     if (paste?.content) {
-      navigator.clipboard.writeText(paste.content);
-      toast.success("Copied to clipboard", {
-        description: "The paste content has been copied to your clipboard.",
+      navigator.clipboard.writeText(paste.content).then(() => {
+        toast.success("Copied to clipboard", {
+          description: "The paste content has been copied to your clipboard.",
+        });
+      }).catch(() => {
+        toast.error("Failed to copy to clipboard");
       });
     }
   };
 
   const shareUrl = () => {
-    navigator.clipboard.writeText(window.location.href);
-    toast.success("URL copied to clipboard", {
-      description: "Share this URL with others to view this paste.",
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      toast.success("URL copied to clipboard", {
+        description: "Share this URL with others to view this paste.",
+      });
+    }).catch(() => {
+      toast.error("Failed to copy URL to clipboard");
     });
   };
   
@@ -50,7 +55,7 @@ export default function PastePage({ params }: { params: { id: string } }) {
     if (paste?.content) {
       // Double URL encode the content
       const encodedContent = encodeURIComponent(encodeURIComponent(paste.content));
-      const language = paste.language || "auto";
+      const language = paste.language ?? "auto";
       const carbonUrl = `https://carbon.now.sh/?l=${language}&code=${encodedContent}`;
       window.open(carbonUrl, "_blank");
     }
@@ -199,7 +204,7 @@ export default function PastePage({ params }: { params: { id: string } }) {
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
-            <CodeBlock code={paste.content || ""} language={paste.language || "plaintext"} />
+            <CodeBlock code={paste.content ?? ""} language={paste.language ?? "plaintext"} />
           </div>
         </CardContent>
       </Card>

@@ -80,7 +80,7 @@ export default function SettingsPage() {
               {session?.user?.image ? (
                 <img 
                   src={session.user.image} 
-                  alt={session.user.name || "User"}
+                  alt={session.user.name ?? "User"}
                   className="h-16 w-16 rounded-full" 
                 />
               ) : (
@@ -89,7 +89,7 @@ export default function SettingsPage() {
                 </div>
               )}
               <div>
-                <p className="font-medium">{session?.user?.name || "User"}</p>
+                <p className="font-medium">{session?.user?.name ?? "User"}</p>
                 <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
               </div>
             </div>

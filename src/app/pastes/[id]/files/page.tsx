@@ -1,17 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
-import { use } from "react";
 
-export default function FilesPage({ params }: { params: { id: string } }) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+export default function FilesPage() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   const [isUploading, setIsUploading] = useState(false);
 
@@ -123,4 +122,4 @@ function formatFileSize(bytes: number): string {
   const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-} 
+}

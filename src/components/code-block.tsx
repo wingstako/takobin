@@ -37,7 +37,7 @@ export function CodeBlock({ code, language }: CodeBlockProps) {
       }
     };
 
-    highlightCode();
+    highlightCode().catch(console.error);
   }, [code, language]);
 
   if (isLoading) {

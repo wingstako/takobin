@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -12,7 +12,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 import { toast } from "sonner";
-import { use } from "react";
 
 const LANGUAGE_OPTIONS = [
   { value: "plaintext", label: "Plain Text" },
@@ -44,9 +43,9 @@ const EXPIRY_OPTIONS = [
   { value: "30", label: "30 days" },
 ];
 
-export default function EditPastePage({ params }: { params: { id: string } }) {
-  const resolvedParams = use(params);
-  const id = resolvedParams.id;
+export default function EditPastePage() {
+  const params = useParams();
+  const id = params.id as string;
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -73,9 +72,9 @@ export default function EditPastePage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (paste && !isLoading) {
       setTitle(paste.title);
-      setContent(paste.content || "");
-      setLanguage(paste.language || "plaintext");
-      setIsPasswordProtected(paste.isProtected || false);
+      setContent(paste.content ?? "");
+      setLanguage(paste.language ?? "plaintext");
+      setIsPasswordProtected(paste.isProtected ?? false);
     }
   }, [paste, isLoading]);
 
@@ -125,7 +124,7 @@ export default function EditPastePage({ params }: { params: { id: string } }) {
           <CardHeader>
             <CardTitle>Error</CardTitle>
             <CardDescription>
-              {error?.message || "Failed to load paste"}
+              {error?.message ?? "Failed to load paste"}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -277,4 +276,4 @@ export default function EditPastePage({ params }: { params: { id: string } }) {
       </Card>
     </main>
   );
-} 
+}
