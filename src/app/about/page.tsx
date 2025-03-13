@@ -2,8 +2,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 
 export default function AboutPage() {
   return (
-    <div className="container py-8">
-      <Card className="mx-auto max-w-3xl">
+    <div className="px-4 md:px-6 py-8 w-full flex justify-center">
+      <Card className="w-full max-w-3xl">
         <CardHeader>
           <CardTitle>About TakoBin</CardTitle>
           <CardDescription>A modern paste bin alternative</CardDescription>

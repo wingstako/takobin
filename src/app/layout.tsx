@@ -47,9 +47,9 @@ export default function RootLayout({
             <TRPCReactProvider>
               <div className="relative flex min-h-screen flex-col">
                 <Navbar />
-                <div className="flex-1 px-4 md:px-6">{children}</div>
+                <div className="flex-1">{children}</div>
                 <footer className="border-t py-6 md:py-0 px-4 md:px-6">
-                  <div className="container flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row">
+                  <div className="flex flex-col items-center justify-between gap-4 md:h-16 md:flex-row max-w-full mx-auto">
                     <p className="text-center text-sm leading-loose text-muted-foreground md:text-left">
                       Built with Next.js, Tailwind CSS, and shadcn/ui.
                     </p>

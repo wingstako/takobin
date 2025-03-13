@@ -73,8 +73,8 @@ export default function NewPastePage() {
   };
 
   return (
-    <main className="container py-8">
-      <Card className="mx-auto max-w-3xl">
+    <main className="px-4 md:px-6 py-8 w-full flex justify-center">
+      <Card className="w-full max-w-3xl">
         <CardHeader>
           <CardTitle>Create New Paste</CardTitle>
           <CardDescription>

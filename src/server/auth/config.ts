@@ -39,6 +39,7 @@ declare module "next-auth" {
  */
 export const authConfig = {
   providers: [
+    DiscordProvider,
     GithubProvider,
     /**
      * ...add more providers here.

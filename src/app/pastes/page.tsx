@@ -63,8 +63,8 @@ export default function PastesPage() {
 
   if (status === "loading") {
     return (
-      <div className="container py-8">
-        <Card>
+      <div className="px-4 md:px-6 py-8 w-full flex justify-center">
+        <Card className="w-full max-w-4xl">
           <CardHeader>
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-72" />
@@ -84,8 +84,8 @@ export default function PastesPage() {
   // For authenticated users with loading data
   if (status === "authenticated" && isLoading) {
     return (
-      <div className="container py-8">
-        <Card>
+      <div className="px-4 md:px-6 py-8 w-full flex justify-center">
+        <Card className="w-full max-w-4xl">
           <CardHeader>
             <Skeleton className="h-8 w-48" />
             <Skeleton className="h-4 w-72" />
@@ -103,8 +103,8 @@ export default function PastesPage() {
   }
 
   return (
-    <div className="container py-8">
-      <Card>
+    <div className="px-4 md:px-6 py-8 w-full flex justify-center">
+      <Card className="w-full max-w-4xl">
         <CardHeader>
           <CardTitle>My Pastes</CardTitle>
           <CardDescription>Manage your saved pastes</CardDescription>

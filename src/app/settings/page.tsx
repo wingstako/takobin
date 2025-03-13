@@ -39,8 +39,8 @@ export default function SettingsPage() {
 
   if (status === "loading") {
     return (
-      <div className="container py-8">
-        <Card className="mx-auto max-w-3xl">
+      <div className="px-4 md:px-6 py-8 w-full flex justify-center">
+        <Card className="w-full max-w-3xl">
           <CardHeader>
             <CardTitle>Settings</CardTitle>
             <CardDescription>Loading your profile...</CardDescription>
@@ -60,8 +60,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="container py-8">
-      <Card className="mx-auto max-w-3xl">
+    <div className="px-4 md:px-6 py-8 w-full flex justify-center">
+      <Card className="w-full max-w-3xl">
         <CardHeader>
           <CardTitle className="text-2xl">Account Settings</CardTitle>
           <CardDescription>
