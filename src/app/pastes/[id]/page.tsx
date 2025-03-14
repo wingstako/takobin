@@ -9,9 +9,11 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/trpc/react";
 import { formatDistanceToNow } from "date-fns";
-import { Clipboard, Share2, Paperclip, Image } from "lucide-react";
+import { Clipboard, Share2, Paperclip, Image, Lock, Globe, Edit } from "lucide-react";
 import { toast } from "sonner";
 import { CodeBlock } from "@/components/code-block";
+import { useSession } from "next-auth/react";
+import { UploadedFilesList } from "@/components/uploaded-files-list";
 
 export default function PastePage() {
   const params = useParams();
@@ -19,12 +21,22 @@ export default function PastePage() {
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [passwordToVerify, setPasswordToVerify] = useState("");
+  const { data: session, status } = useSession();
 
-  const { data: paste, refetch, isLoading, error } = api.paste.getById.useQuery({ id, password });
+  const { data: paste, refetch, isLoading, error } = api.paste.getById.useQuery({ id, password: passwordToVerify });
+  
+  const { data: files, isLoading: isLoadingFiles } = api.fileUpload.getByPasteId.useQuery(
+    { pasteId: id },
+    { 
+      enabled: !!id && (!paste?.isProtected || !!passwordToVerify)
+    }
+  );
 
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setPasswordToVerify(password);
     await refetch();
     setIsSubmitting(false);
   };
@@ -168,7 +180,24 @@ export default function PastePage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>{paste.title}</CardTitle>
+              <div className="flex items-center space-x-2">
+                <CardTitle>{paste.title}</CardTitle>
+                {paste.isProtected && (
+                  <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+                    <Lock className="mr-1 h-3 w-3" /> Password Protected
+                  </span>
+                )}
+                {paste.visibility && (
+                  <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${paste.visibility === 'private' ? 'text-amber-500 border-amber-200 bg-amber-50 dark:bg-amber-950 dark:border-amber-800' : 'text-emerald-500 border-emerald-200 bg-emerald-50 dark:bg-emerald-950 dark:border-emerald-800'}`}>
+                    {paste.visibility === 'private' ? (
+                      <Lock className="mr-1 h-3 w-3" />
+                    ) : (
+                      <Globe className="mr-1 h-3 w-3" />
+                    )}
+                    {paste.visibility === 'private' ? 'Private' : 'Public'}
+                  </span>
+                )}
+              </div>
               <CardDescription>
                 Created {formatDistanceToNow(new Date(paste.createdAt), { addSuffix: true })}
                 {paste.expiresAt && (
@@ -199,6 +228,16 @@ export default function PastePage() {
               >
                 <Paperclip className="h-4 w-4" />
               </Button>
+              {paste.userId === session?.user?.id && (
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  onClick={() => router.push(`/pastes/${id}/edit`)}
+                  title="Edit paste"
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         </CardHeader>
@@ -208,6 +247,29 @@ export default function PastePage() {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Files section */}
+      {!isLoading && paste && paste.content && !isLoadingFiles && files && files.length > 0 && (
+        <div className="mt-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <Paperclip className="h-5 w-5 mr-2" />
+                Attached Files
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <UploadedFilesList 
+                files={files?.map(file => ({
+                  ...file,
+                  createdAt: file.createdAt.toString(),
+                })) || []}
+                pasteOwnerId={paste.userId}
+              />
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

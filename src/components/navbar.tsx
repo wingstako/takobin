@@ -30,27 +30,24 @@ export function Navbar() {
         <nav className="hidden md:flex items-center space-x-6 text-sm font-medium ml-6">
           <Link
             href="/"
-            className={`transition-colors hover:text-foreground/80 ${
-              pathname === "/" ? "text-foreground" : "text-foreground/60"
-            }`}
+            className={`transition-colors hover:text-foreground/80 ${pathname === "/" ? "text-foreground" : "text-foreground/60"
+              }`}
           >
             Home
           </Link>
           <Link
             href="/pastes"
-            className={`transition-colors hover:text-foreground/80 ${
-              pathname === "/pastes" || pathname.startsWith("/pastes/")
-                ? "text-foreground"
-                : "text-foreground/60"
-            }`}
+            className={`transition-colors hover:text-foreground/80 ${pathname === "/pastes" || pathname.startsWith("/pastes/")
+              ? "text-foreground"
+              : "text-foreground/60"
+              }`}
           >
             My Pastes
           </Link>
           <Link
             href="/about"
-            className={`transition-colors hover:text-foreground/80 ${
-              pathname === "/about" ? "text-foreground" : "text-foreground/60"
-            }`}
+            className={`transition-colors hover:text-foreground/80 ${pathname === "/about" ? "text-foreground" : "text-foreground/60"
+              }`}
           >
             About
           </Link>
@@ -58,34 +55,35 @@ export function Navbar() {
 
         <div className="ml-auto flex items-center space-x-4">
           <ThemeToggle />
-          
+
           {/* Desktop Only */}
-          
+
           <div className="hidden md:flex items-center space-x-4">
-            <Button variant="outline" size="sm">
+
             {session?.user && (
-              <Link
-                href="/settings"
-                className={`flex items-center transition-colors hover:text-foreground/80 ${
-                  pathname === "/settings" ? "text-foreground" : "text-foreground/60"
-                }`}
-              >
-                <Settings className="h-4 w-4 mr-1" />
-                <span>Settings</span>
-              </Link>
+              <Button variant="outline" size="sm">
+                <Link
+                  href="/settings"
+                  className={`flex items-center transition-colors hover:text-foreground/80 ${pathname === "/settings" ? "text-foreground" : "text-foreground/60"
+                    }`}
+                >
+                  <Settings className="h-4 w-4 mr-1" />
+                  <span>Settings</span>
+                </Link>
+              </Button>
             )}
-            </Button>
-            
+
+
             <Button asChild variant="default" size="sm">
               <Link href="/new">New Paste</Link>
             </Button>
-            
+
             {session?.user ? (
               <Link href="/settings" className="flex items-center">
                 {session.user.image ? (
-                  <img 
-                    src={session.user.image} 
-                    alt={session.user.name ?? 'User'} 
+                  <img
+                    src={session.user.image}
+                    alt={session.user.name ?? 'User'}
                     className="h-8 w-8 rounded-full"
                   />
                 ) : (
@@ -98,7 +96,7 @@ export function Navbar() {
               </Button>
             )}
           </div>
-          
+
           {/* Mobile Menu Button */}
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
@@ -112,40 +110,36 @@ export function Navbar() {
                 <nav className="flex flex-col space-y-6 text-base font-medium mt-6">
                   <Link
                     href="/"
-                    className={`transition-colors hover:text-foreground/80 ${
-                      pathname === "/" ? "text-foreground" : "text-foreground/60"
-                    }`}
+                    className={`transition-colors hover:text-foreground/80 ${pathname === "/" ? "text-foreground" : "text-foreground/60"
+                      }`}
                     onClick={() => setIsOpen(false)}
                   >
                     Home
                   </Link>
                   <Link
                     href="/pastes"
-                    className={`transition-colors hover:text-foreground/80 ${
-                      pathname === "/pastes" || pathname.startsWith("/pastes/")
-                        ? "text-foreground"
-                        : "text-foreground/60"
-                    }`}
+                    className={`transition-colors hover:text-foreground/80 ${pathname === "/pastes" || pathname.startsWith("/pastes/")
+                      ? "text-foreground"
+                      : "text-foreground/60"
+                      }`}
                     onClick={() => setIsOpen(false)}
                   >
                     My Pastes
                   </Link>
                   <Link
                     href="/about"
-                    className={`transition-colors hover:text-foreground/80 ${
-                      pathname === "/about" ? "text-foreground" : "text-foreground/60"
-                    }`}
+                    className={`transition-colors hover:text-foreground/80 ${pathname === "/about" ? "text-foreground" : "text-foreground/60"
+                      }`}
                     onClick={() => setIsOpen(false)}
                   >
                     About
                   </Link>
-                  
+
                   {session?.user && (
                     <Link
                       href="/settings"
-                      className={`flex items-center transition-colors hover:text-foreground/80 ${
-                        pathname === "/settings" ? "text-foreground" : "text-foreground/60"
-                      }`}
+                      className={`flex items-center transition-colors hover:text-foreground/80 ${pathname === "/settings" ? "text-foreground" : "text-foreground/60"
+                        }`}
                       onClick={() => setIsOpen(false)}
                     >
                       <Settings className="h-4 w-4 mr-2" />
@@ -153,12 +147,12 @@ export function Navbar() {
                     </Link>
                   )}
                 </nav>
-                
+
                 <div className="mt-auto pt-6 space-y-4">
                   <Button asChild className="w-full" onClick={() => setIsOpen(false)}>
                     <Link href="/new">New Paste</Link>
                   </Button>
-                  
+
                   {!session?.user && (
                     <Button asChild variant="outline" className="w-full" onClick={() => setIsOpen(false)}>
                       <Link href="/api/auth/signin">Login</Link>

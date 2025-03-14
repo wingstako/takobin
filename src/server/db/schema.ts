@@ -142,7 +142,9 @@ export const pastes = createTable(
     title: varchar("title", { length: 255 }).notNull(),
     content: text("content").notNull(),
     language: varchar("language", { length: 50 }).default("plaintext"),
-    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    visibility: varchar("visibility", { length: 20 }).default("public").notNull(),
+    pasteType: varchar("paste_type", { length: 20 }).default("text").notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
     lastAccessedAt: timestamp("last_accessed_at", { withTimezone: true })
       .default(sql`CURRENT_TIMESTAMP`)
       .notNull(),
@@ -156,6 +158,7 @@ export const pastes = createTable(
   (paste) => ({
     userIdIdx: index("paste_user_id_idx").on(paste.userId),
     expiresAtIdx: index("paste_expires_at_idx").on(paste.expiresAt),
+    pasteTypeIdx: index("paste_type_idx").on(paste.pasteType),
   })
 );
 

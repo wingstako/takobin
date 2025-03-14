@@ -7,11 +7,12 @@ import {
 } from "@/server/api/trpc";
 import { pastes, fileUploads } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { eq, and, desc, count } from "drizzle-orm";
+import { eq, and, desc, count, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { add } from "date-fns";
 import { hash, compare } from "bcryptjs";
 
+// Constants for paste expiry
 const GUEST_MAX_EXPIRY_DAYS = 7;
 const USER_MAX_EXPIRY_DAYS = 30;
 
@@ -24,16 +25,34 @@ export const pasteRouter = createTRPCRouter({
         content: z.string().min(1),
         language: z.string().min(1).max(50).default("plaintext"),
         password: z.string().optional(),
-        expiryDays: z.number().int().min(1).max(USER_MAX_EXPIRY_DAYS).default(7),
+        expiryDays: z.number().int().min(1).max(USER_MAX_EXPIRY_DAYS).default(7).optional(),
+        neverExpire: z.boolean().optional(),
+        expiryDate: z.date().optional(),
+        visibility: z.enum(["public", "private"]).default("public"),
+        pasteType: z.enum(["text", "multimedia"]).default("text"),
       }),
     )
     .mutation(async ({ ctx, input }) => {
       const id = nanoid(10);
       
-      // Calculate expiry date based on user status
-      const maxDays = ctx.session?.user ? USER_MAX_EXPIRY_DAYS : GUEST_MAX_EXPIRY_DAYS;
-      const expiryDays = Math.min(input.expiryDays, maxDays);
-      const expiresAt = add(new Date(), { days: expiryDays });
+      // Calculate expiry date based on user status and input
+      let expiresAt = null;
+      
+      // Only set expiry if not "never expire" and user is authenticated or using default expiry
+      if (!input.neverExpire) {
+        if (input.expiryDate) {
+          // For date picker input
+          expiresAt = input.expiryDate;
+        } else if (input.expiryDays) {
+          // For backward compatibility
+          const maxDays = ctx.session?.user ? USER_MAX_EXPIRY_DAYS : GUEST_MAX_EXPIRY_DAYS;
+          const expiryDays = Math.min(input.expiryDays, maxDays);
+          expiresAt = add(new Date(), { days: expiryDays });
+        } else {
+          // Default expiry is 7 days
+          expiresAt = add(new Date(), { days: 7 });
+        }
+      }
       
       // Hash password if provided
       let hashedPassword = null;
@@ -47,6 +66,8 @@ export const pasteRouter = createTRPCRouter({
         title: input.title,
         content: input.content,
         language: input.language,
+        visibility: input.visibility,
+        pasteType: input.pasteType,
         expiresAt,
         isProtected: !!input.password,
         password: hashedPassword,
@@ -77,10 +98,18 @@ export const pasteRouter = createTRPCRouter({
       }
 
       // Check if paste is expired
-      if (new Date() > paste.expiresAt) {
+      if (paste.expiresAt && new Date() > paste.expiresAt) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Paste has expired",
+        });
+      }
+
+      // Check if paste is private and user is not the creator
+      if (paste.visibility === "private" && paste.userId !== ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "This paste is private and can only be accessed by its creator",
         });
       }
 
@@ -93,11 +122,13 @@ export const pasteRouter = createTRPCRouter({
             title: paste.title,
             isProtected: true,
             language: paste.language,
+            visibility: paste.visibility,
             expiresAt: paste.expiresAt,
             userId: paste.userId,
             createdAt: paste.createdAt,
             // Don't return the content if password protected
             content: null,
+            pasteType: paste.pasteType,
           };
         }
 
@@ -112,14 +143,14 @@ export const pasteRouter = createTRPCRouter({
       }
 
       // Update last accessed time
-      const maxExpiryDays = paste.userId ? USER_MAX_EXPIRY_DAYS : GUEST_MAX_EXPIRY_DAYS;
-      const newExpiresAt = add(new Date(), { days: maxExpiryDays });
+      // const maxExpiryDays = paste.userId ? USER_MAX_EXPIRY_DAYS : GUEST_MAX_EXPIRY_DAYS;
+      // const newExpiresAt = add(new Date(), { days: maxExpiryDays });
       
       await ctx.db
         .update(pastes)
         .set({ 
           lastAccessedAt: new Date(),
-          expiresAt: newExpiresAt,
+          // expiresAt: newExpiresAt,
         })
         .where(eq(pastes.id, input.id));
 
@@ -212,13 +243,16 @@ export const pasteRouter = createTRPCRouter({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        id: z.string().min(1),
         title: z.string().min(1).max(255).optional(),
         content: z.string().min(1).optional(),
         language: z.string().min(1).max(50).optional(),
+        expiryDate: z.date().optional(),
+        neverExpire: z.boolean().optional(),
         password: z.string().optional(),
         removePassword: z.boolean().optional(),
-        expiryDays: z.number().int().min(1).max(USER_MAX_EXPIRY_DAYS).optional(),
+        visibility: z.enum(["public", "private"]).optional(),
+        pasteType: z.enum(["text", "multimedia"]).optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -233,7 +267,6 @@ export const pasteRouter = createTRPCRouter({
         });
       }
 
-      // Ensure user owns the paste
       if (paste.userId !== ctx.session.user.id) {
         throw new TRPCError({
           code: "FORBIDDEN",
@@ -241,31 +274,39 @@ export const pasteRouter = createTRPCRouter({
         });
       }
 
-      const updateData: Record<string, unknown> = {};
+      let expiresAt = null;
 
-      if (input.title) updateData.title = input.title;
-      if (input.content) updateData.content = input.content;
-      if (input.language) updateData.language = input.language;
-      
-      // Update expiry if specified
-      if (input.expiryDays) {
-        updateData.expiresAt = add(new Date(), { 
-          days: Math.min(input.expiryDays, USER_MAX_EXPIRY_DAYS) 
-        });
+      if (input.neverExpire) {
+        expiresAt = null;
+      } else if (input.expiryDate) {
+        expiresAt = input.expiryDate;
+      } else if (paste.expiresAt) {
+        expiresAt = paste.expiresAt;
       }
 
-      // Handle password changes
-      if (input.password) {
-        updateData.isProtected = true;
-        updateData.password = await hash(input.password, 10);
-      } else if (input.removePassword) {
-        updateData.isProtected = false;
-        updateData.password = null;
+      let hashedPassword = paste.password;
+      let isProtected = paste.isProtected;
+
+      if (input.removePassword) {
+        hashedPassword = null;
+        isProtected = false;
+      } else if (input.password) {
+        hashedPassword = await hash(input.password, 10);
+        isProtected = true;
       }
 
       await ctx.db
         .update(pastes)
-        .set(updateData)
+        .set({
+          title: input.title,
+          content: input.content,
+          language: input.language,
+          expiresAt,
+          isProtected,
+          password: hashedPassword,
+          visibility: input.visibility ?? paste.visibility,
+          pasteType: input.pasteType ?? paste.pasteType,
+        })
         .where(eq(pastes.id, input.id));
 
       return { success: true };
