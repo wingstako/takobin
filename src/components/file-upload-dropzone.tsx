@@ -76,6 +76,9 @@ export function FileUploadDropzone({
       
       // Upload each file
       for (const [fileId, file] of Object.entries(newUploadingFiles)) {
+        // Define progressInterval at this scope so it's available in the catch block
+        let progressInterval: NodeJS.Timeout | null = null;
+        
         try {
           // Determine file type category (more comprehensive detection)
           let fileType = 'other';
@@ -125,30 +128,57 @@ export function FileUploadDropzone({
             fileType = 'code';
           }
           
-          // Create a single options object with the correct type
-          const uploadOptions = {
-            access: 'public' as const,
-            handleUploadUrl: '/api/upload',
-            clientPayload: JSON.stringify({ pasteId, fileType }),
-            onProgress: (progress: number) => {
-              setUploadProgress((prev) => ({ 
-                ...prev, 
-                [fileId]: Math.round(progress) 
-              }));
-            }
-          };
+          // Create a simpler JSON payload that's unlikely to cause parsing issues
+          const clientPayloadStr = JSON.stringify({
+            pasteId: pasteId,
+            fileType: fileType
+          });
           
-          // Use the options object with type assertion
-          const newBlob = await upload(file.name, file, uploadOptions as CustomUploadOptions);
+          console.log("Starting upload for file:", file.name);
+          console.log("Client payload:", clientPayloadStr);
+          
+          // Create FormData to properly handle the multipart upload
+          const formData = new FormData();
+          formData.append('file', file);
+          
+          // Simulate upload progress since we're not using Vercel's progress tracking
+          progressInterval = setInterval(() => {
+            setUploadProgress((prev) => {
+              const currentProgress = prev[fileId] || 0;
+              // Cap progress at 90% until we get the actual response
+              const newProgress = Math.min(90, currentProgress + Math.floor(Math.random() * 10));
+              return { ...prev, [fileId]: newProgress };
+            });
+          }, 300);
+          
+          // Use raw fetch for better control over the upload
+          const response = await fetch(`/api/upload?filename=${encodeURIComponent(file.name)}&pasteId=${encodeURIComponent(pasteId)}&fileType=${encodeURIComponent(fileType)}`, {
+            method: 'POST',
+            body: formData
+          });
+          
+          // Clear the progress simulation
+          clearInterval(progressInterval);
+          
+          if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error || `Upload failed with status ${response.status}`);
+          }
+          
+          // Set progress to 100% when complete
+          setUploadProgress((prev) => ({ ...prev, [fileId]: 100 }));
+          
+          const blobData = await response.json();
+          console.log("Upload succeeded:", blobData);
           
           // Now save the file data to our database
-          const response = await fetch('/api/upload/save', {
+          const saveResponse = await fetch('/api/upload/save', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              url: newBlob.url,
+              url: blobData.url,
               filename: file.name,
               size: file.size,
               pasteId,
@@ -156,16 +186,16 @@ export function FileUploadDropzone({
             }),
           });
           
-          const data = await response.json();
+          const data = await saveResponse.json();
           
-          if (!response.ok) {
+          if (!saveResponse.ok) {
             throw new Error(data.error || 'Failed to save file information');
           }
           
           if (onUploadComplete) {
             onUploadComplete({
               id: data.fileId,
-              url: newBlob.url,
+              url: blobData.url,
               filename: file.name,
               fileType: fileType,
               fileSize: file.size,
@@ -182,6 +212,12 @@ export function FileUploadDropzone({
           });
           
         } catch (error) {
+          // Make sure to clear the interval if there's an error
+          if (progressInterval) {
+            clearInterval(progressInterval);
+          }
+          
+          console.error("Upload error:", error);
           toast.error(`Failed to upload ${file.name}: ${(error as Error).message}`);
           
           // Remove file from uploading state but keep progress for feedback
@@ -284,7 +320,7 @@ export function FileUploadDropzone({
                       {(file.size / 1024).toFixed(1)} KB
                     </span>
                   </div>
-                  <Progress value={uploadProgress[fileId] || 0} className="h-1 mt-1" />
+                  <Progress value={uploadProgress[fileId] ?? 0} className="h-1 mt-1" />
                 </div>
                 <Button 
                   variant="ghost" 

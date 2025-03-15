@@ -152,7 +152,7 @@ export function UploadedFilesList({
             <Dialog>
               <DialogTrigger asChild>
                 <button
-                  onClick={() => setSelectedFile(file as FileUpload)}
+                  onClick={() => setSelectedFile(file)}
                   className="flex flex-col items-center justify-center p-4 h-32 bg-muted/40 hover:bg-muted/60 transition-colors"
                 >
                   {file.fileType === 'image' ? (
@@ -179,7 +179,7 @@ export function UploadedFilesList({
                 <DialogHeader>
                   <DialogTitle className="truncate">{file.filename}</DialogTitle>
                 </DialogHeader>
-                {renderFilePreview(file as FileUpload)}
+                {renderFilePreview(file)}
               </DialogContent>
             </Dialog>
             
@@ -191,7 +191,7 @@ export function UploadedFilesList({
                   variant="ghost"
                   size="icon"
                   className="h-6 w-6"
-                  onClick={() => handleDownload(file as FileUpload)}
+                  onClick={() => handleDownload(file)}
                   title="Download"
                 >
                   <Download className="h-3 w-3" />

@@ -33,7 +33,9 @@ export const pasteRouter = createTRPCRouter({
       }),
     )
     .mutation(async ({ ctx, input }) => {
-      const id = nanoid(10);
+      // Generate a URL-safe ID using nanoid and ensure no special characters
+      // nanoid already generates URL-safe characters, but we'll ensure only alphanumeric characters
+      const id = nanoid(10).replace(/[^a-zA-Z0-9]/g, 'a');
       
       // Calculate expiry date based on user status and input
       let expiresAt = null;
