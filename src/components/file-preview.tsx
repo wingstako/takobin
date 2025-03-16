@@ -1,4 +1,5 @@
 import Image from 'next/image';
+import { useState } from 'react';
 import { 
   File, 
   Image as ImageIcon, 
@@ -23,6 +24,8 @@ interface FilePreviewProps {
 }
 
 export function FilePreview({ file }: FilePreviewProps) {
+  const [imageError, setImageError] = useState(false);
+
   const handleDownload = () => {
     // Create a temporary anchor element
     const link = document.createElement('a');
@@ -49,13 +52,23 @@ export function FilePreview({ file }: FilePreviewProps) {
   if (file.fileType === 'image') {
     return (
       <div className="relative w-full max-h-[500px] flex items-center justify-center border rounded-md p-4 bg-muted/20">
-        <Image
-          src={file.storageKey}
-          alt={file.filename}
-          className="max-w-full max-h-[500px] object-contain"
-          width={800}
-          height={600}
-        />
+        {!imageError ? (
+          <Image
+            src={file.storageKey}
+            alt={file.filename}
+            className="max-w-full max-h-[500px] object-contain"
+            width={800}
+            height={600}
+            onError={() => setImageError(true)}
+            priority
+          />
+        ) : (
+          <img
+            src={file.storageKey}
+            alt={file.filename}
+            className="max-w-full max-h-[500px] object-contain"
+          />
+        )}
         <div className="absolute bottom-2 right-2 bg-background/80 backdrop-blur-sm rounded-md p-1 shadow-sm flex items-center space-x-2">
           <span className="text-xs">{formatBytes(file.fileSize)}</span>
           <Button

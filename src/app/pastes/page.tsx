@@ -2,22 +2,37 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { api } from "@/trpc/react";
 import { formatDistanceToNow } from "date-fns";
-import { Edit, Eye, Lock, Trash2, Paperclip, Code, FileText, ImageIcon, File, Globe, Clock } from "lucide-react";
+import { Edit, Eye, Lock, Trash2, Code, FileText, ImageIcon, File, Globe, Clock } from "lucide-react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
+// Define proper types for paste data
+interface Paste {
+  id: string;
+  title: string;
+  content: string;
+  language: string | null;
+  visibility: string;
+  pasteType: string;
+  expiresAt: Date | null;
+  createdAt: Date;
+  isProtected: boolean | null;
+  userId: string | null;
+  password?: string | null;
+  lastAccessedAt: Date;
+}
+
 export default function PastesPage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [page, setPage] = useState(1);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pasteToDelete, setPasteToDelete] = useState<string | null>(null);
@@ -62,7 +77,7 @@ export default function PastesPage() {
     }
   };
 
-  const getPasteTypeIcon = (paste: any) => {
+  const getPasteTypeIcon = (paste: Paste) => {
     const isMultimedia = paste.pasteType === 'multimedia';
     
     if (isMultimedia) {
@@ -87,7 +102,7 @@ export default function PastesPage() {
     }
   };
 
-  const getPreviewContent = (paste: any) => {
+  const getPreviewContent = (paste: Paste) => {
     const isMultimedia = paste.pasteType === 'multimedia';
     
     if (isMultimedia) {
@@ -104,7 +119,7 @@ export default function PastesPage() {
       return (
         <div className="h-32 overflow-hidden bg-slate-100 dark:bg-slate-800 rounded text-sm p-2 font-mono">
           <code className="text-xs">
-            {paste.content ? (
+            {paste.content && paste.content.length > 0 ? (
               paste.content.substring(0, 200) + (paste.content.length > 200 ? '...' : '')
             ) : (
               <span className="text-slate-400">No preview available</span>
@@ -223,7 +238,7 @@ export default function PastesPage() {
               {data?.pastes.map((paste) => (
                 <Card key={paste.id} className="overflow-hidden hover:border-primary transition-all">
                   <div className="relative">
-                    {getPreviewContent(paste)}
+                    {getPreviewContent(paste as Paste)}
                     
                     <div className="absolute top-2 right-2 flex space-x-1">
                       {paste.visibility === "private" && (
@@ -242,7 +257,7 @@ export default function PastesPage() {
                   
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 mb-2">
-                      {getPasteTypeIcon(paste)}
+                      {getPasteTypeIcon(paste as Paste)}
                       <h3 className="font-medium truncate">{paste.title}</h3>
                     </div>
                     

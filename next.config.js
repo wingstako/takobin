@@ -10,6 +10,16 @@ const config = {
   webpack: (config) => {
     return config;
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   headers: async () => {
     return [
       {

@@ -6,12 +6,16 @@ export async function POST(request: Request): Promise<NextResponse> {
   try {
     // Get the auth session
     const session = await auth();
+
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
     
     // Get query parameters from the URL
     const url = new URL(request.url);
-    const filename = url.searchParams.get('filename') || '';
-    const pasteId = url.searchParams.get('pasteId') || '';
-    const fileType = url.searchParams.get('fileType') || 'other';
+    const filename = url.searchParams.get('filename') ?? '';
+    const pasteId = url.searchParams.get('pasteId') ?? '';
+    const fileType = url.searchParams.get('fileType') ?? 'other';
     
     console.log(`Processing upload for ${filename}, pasteId: ${pasteId}, fileType: ${fileType}`);
     

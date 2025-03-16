@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { add } from "date-fns";
 import { FileUploadDropzone } from "@/components/file-upload-dropzone";
 import { UploadedFilesList } from "@/components/uploaded-files-list";
-import { FileText, Upload, ImageIcon, Lock } from "lucide-react";
+import { FileText, ImageIcon, Lock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 const LANGUAGE_OPTIONS = [
@@ -309,7 +309,7 @@ export default function EditPastePage() {
                   </div>
                 ) : (
                   <UploadedFilesList 
-                    files={(files || []).map(file => ({
+                    files={(files ?? []).map(file => ({
                       ...file,
                       createdAt: file.createdAt.toString(),
                     }))}

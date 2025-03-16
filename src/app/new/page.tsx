@@ -13,10 +13,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { DatePicker } from "@/components/date-picker";
 import { api } from "@/trpc/react";
 import { add } from "date-fns";
-import { FileUploadDropzone } from "@/components/file-upload-dropzone";
-import { UploadedFilesList } from "@/components/uploaded-files-list";
 import { Badge } from "@/components/ui/badge";
-import { FileText, ImageIcon, Lock, Code, File as FileIcon, Upload as UploadIcon, Clock, CheckCircle, X } from "lucide-react";
+import { FileText, ImageIcon, Code, File as FileIcon, Upload as UploadIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { Progress } from "@/components/ui/progress";
 
@@ -46,9 +44,14 @@ const LANGUAGE_OPTIONS = [
 // Different paste types
 type PasteType = "text" | "multimedia";
 
+// Define types for API responses
+interface UploadResponse {
+  url: string;
+}
+
 export default function NewPastePage() {
   const router = useRouter();
-  const { data: session, status } = useSession();
+  const { status } = useSession();
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [language, setLanguage] = useState("plaintext");
@@ -80,7 +83,7 @@ export default function NewPastePage() {
       // For multimedia pastes with pre-uploaded files, update the database
       if (pasteType === "multimedia" && uploadedFileInfo) {
         // Save the uploaded file info to the database
-        saveFileInfo(data.id, uploadedFileInfo);
+        void saveFileInfo(data.id, uploadedFileInfo);
       }
     },
     onError: (error) => {
@@ -164,7 +167,7 @@ export default function NewPastePage() {
         throw new Error(errorText || "File upload failed");
       }
       
-      const data = await response.json();
+      const data = await response.json() as UploadResponse;
       return {
         url: data.url,
         filename: file.name,
@@ -491,7 +494,7 @@ export default function NewPastePage() {
                         e.stopPropagation();
                         e.currentTarget.classList.remove('border-primary', 'bg-primary/10');
                         
-                        if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                        if (e.dataTransfer?.files?.[0]) {
                           const file = e.dataTransfer.files[0];
                           
                           // Check file size

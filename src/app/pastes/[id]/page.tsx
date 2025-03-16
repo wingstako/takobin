@@ -20,7 +20,6 @@ import {
   Edit, 
   FileText, 
   Code, 
-  File, 
   Image as ImageIcon, 
   Video, 
   Download 
@@ -120,13 +119,13 @@ export default function PastePage() {
 
   if (isLoading) {
     return (
-      <div className="container flex justify-center py-8">
-        <Card className="mx-auto max-w-4xl w-full">
-          <CardHeader>
+      <div className="container max-w-[1920px] mx-auto flex justify-center py-8 px-4 sm:px-6">
+        <Card className="mx-auto max-w-4xl w-full shadow-sm">
+          <CardHeader className="px-4 sm:px-6">
             <Skeleton className="h-8 w-3/4" />
             <Skeleton className="h-4 w-1/2" />
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <Skeleton className="h-[400px] w-full" />
           </CardContent>
         </Card>
@@ -136,22 +135,22 @@ export default function PastePage() {
 
   if (error) {
     return (
-      <div className="container flex justify-center py-8">
-        <Card className="mx-auto max-w-4xl w-full">
-          <CardHeader>
+      <div className="container max-w-[1920px] mx-auto flex justify-center py-8 px-4 sm:px-6">
+        <Card className="mx-auto max-w-4xl w-full shadow-sm">
+          <CardHeader className="px-4 sm:px-6">
             <CardTitle>Error</CardTitle>
             <CardDescription>
               {error.message === "FORBIDDEN" ? "This paste has expired." : "Failed to load paste."}
             </CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <p className="text-muted-foreground">
               {error.message === "FORBIDDEN"
                 ? "The paste you're trying to access has expired and is no longer available."
                 : "There was an error loading this paste. It may have been deleted or may not exist."}
             </p>
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex justify-center px-4 sm:px-6">
             <Button onClick={() => router.push("/")}>Return Home</Button>
           </CardFooter>
         </Card>
@@ -162,14 +161,14 @@ export default function PastePage() {
   // If paste is password protected and content is not available
   if (paste?.isProtected && !paste.content) {
     return (
-      <div className="container flex justify-center py-8">
-        <Card className="mx-auto max-w-4xl w-full">
-          <CardHeader className="text-center">
+      <div className="container max-w-[1920px] mx-auto flex justify-center py-8 px-4 sm:px-6">
+        <Card className="mx-auto max-w-4xl w-full shadow-sm">
+          <CardHeader className="text-center px-4 sm:px-6">
             <CardTitle>{paste.title}</CardTitle>
             <CardDescription>This paste is password protected</CardDescription>
           </CardHeader>
           <form onSubmit={handlePasswordSubmit}>
-            <CardContent className="max-w-md mx-auto">
+            <CardContent className="max-w-md mx-auto px-4 sm:px-6">
               <div className="space-y-4">
                 <p className="text-muted-foreground text-center">
                   Enter the password to view this paste.
@@ -187,7 +186,7 @@ export default function PastePage() {
                 </div>
               </div>
             </CardContent>
-            <CardFooter className="flex justify-center">
+            <CardFooter className="flex justify-center px-4 sm:px-6">
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Verifying..." : "Submit"}
               </Button>
@@ -200,18 +199,18 @@ export default function PastePage() {
 
   if (!paste) {
     return (
-      <div className="container flex justify-center py-8">
-        <Card className="mx-auto max-w-4xl w-full">
-          <CardHeader className="text-center">
+      <div className="container max-w-[1920px] mx-auto flex justify-center py-8 px-4 sm:px-6">
+        <Card className="mx-auto max-w-4xl w-full shadow-sm">
+          <CardHeader className="text-center px-4 sm:px-6">
             <CardTitle>Paste Not Found</CardTitle>
             <CardDescription>The paste you're looking for doesn't exist.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <p className="text-muted-foreground text-center">
               The paste may have been deleted or may never have existed.
             </p>
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex justify-center px-4 sm:px-6">
             <Button onClick={() => router.push("/")}>Return Home</Button>
           </CardFooter>
         </Card>
@@ -222,18 +221,18 @@ export default function PastePage() {
   // After loading checks, add visibility check
   if (!isLoading && paste && !canAccessPaste()) {
     return (
-      <div className="container flex justify-center py-8">
-        <Card className="mx-auto max-w-4xl w-full">
-          <CardHeader className="text-center">
+      <div className="container max-w-[1920px] mx-auto flex justify-center py-8 px-4 sm:px-6">
+        <Card className="mx-auto max-w-4xl w-full shadow-sm">
+          <CardHeader className="text-center px-4 sm:px-6">
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>You don't have permission to view this paste.</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <p className="text-muted-foreground text-center">
               This paste is private and can only be accessed by its owner.
             </p>
           </CardContent>
-          <CardFooter className="flex justify-center">
+          <CardFooter className="flex justify-center px-4 sm:px-6">
             <Button onClick={() => router.push("/")}>Return Home</Button>
           </CardFooter>
         </Card>
@@ -242,9 +241,9 @@ export default function PastePage() {
   }
 
   return (
-    <div className="container flex justify-center py-8">
-      <Card className="mx-auto max-w-4xl w-full">
-        <CardHeader>
+    <div className="container max-w-[1920px] mx-auto flex justify-center py-8 px-4 sm:px-6">
+      <Card className="mx-auto max-w-4xl w-full shadow-sm">
+        <CardHeader className="px-4 sm:px-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex flex-wrap items-center gap-2">
@@ -282,21 +281,25 @@ export default function PastePage() {
               </CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="icon" onClick={copyToClipboard} title="Copy content">
-                <Clipboard className="h-4 w-4" />
-              </Button>
+              {paste.pasteType === "text" && (
+                <Button variant="outline" size="icon" onClick={copyToClipboard} title="Copy content">
+                  <Clipboard className="h-4 w-4" />
+                </Button>
+              )}
               <Button variant="outline" size="icon" onClick={shareUrl} title="Share URL">
                 <Share2 className="h-4 w-4" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="icon" 
-                onClick={exportToCarbon}
-                title="Export as image (Carbon)"
-              >
-                <Image className="h-4 w-4" />
-              </Button>
-              {paste.userId === session?.user?.id && (
+              {paste.pasteType === "text" && (
+                  <Button 
+                    variant="outline" 
+                    size="icon" 
+                    onClick={exportToCarbon}
+                    title="Export as image (Carbon)"
+                >
+                  <Image className="h-4 w-4" />
+                </Button>
+              )}
+              {paste.pasteType === "text" && paste.userId === session?.user?.id && (
                 <Button 
                   variant="outline" 
                   size="icon" 
@@ -309,7 +312,7 @@ export default function PastePage() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           {hasFiles ? (
             <Tabs defaultValue={activeTab} onValueChange={setActiveTab}>
               <TabsList className="mb-4">
