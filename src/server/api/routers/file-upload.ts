@@ -8,6 +8,7 @@ import {
 import { fileUploads, pastes } from "@/server/db/schema";
 import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { fileManager } from "@/lib/file-manager";
 
 export const fileUploadRouter = createTRPCRouter({
   // Get files associated with a paste
@@ -25,36 +26,10 @@ export const fileUploadRouter = createTRPCRouter({
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      // Get the file to check ownership
-      const file = await ctx.db.query.fileUploads.findFirst({
-        where: eq(fileUploads.id, input.id),
-        with: {
-          paste: true,
-        },
-      });
-
-      if (!file) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "File not found",
-        });
-      }
-
-      // Check if the user owns the associated paste
-      if (file.paste.userId !== ctx.session.user.id) {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "You don't have permission to delete this file",
-        });
-      }
-
-      // TODO: Delete file from storage (S3, etc.)
-      // This would be implemented once we have actual file storage
-
-      // Delete from database
-      await ctx.db.delete(fileUploads).where(eq(fileUploads.id, input.id));
-
-      return { success: true };
+      // Use the fileManager to handle deletion
+      const result = await fileManager.deleteFile(input.id, ctx.session.user.id);
+      
+      return { success: result };
     }),
 
   // Pre-sign URL for file upload (this would be implemented with real file storage)

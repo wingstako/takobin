@@ -1,6 +1,6 @@
-import { put } from '@vercel/blob';
 import { NextResponse } from 'next/server';
 import { auth } from "@/server/auth";
+import { storageService } from "@/lib/storage";
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
@@ -94,20 +94,17 @@ export async function POST(request: Request): Promise<NextResponse> {
         console.warn(`File type ${file.type} is not in the recommended list for ${fileType}. Proceeding anyway.`);
       }
       
-      // Upload the file to Vercel Blob
-      const blob = await put(filename, file, {
+      // Use our storage service instead of directly using Vercel Blob
+      const result = await storageService.uploadFile(filename, file, {
         access: 'public',
-        // Add any allowed properties according to Vercel Blob API
-        addRandomSuffix: false, // Prevent random suffix on the filename
+        addRandomSuffix: false
       });
       
-      console.log('Upload successful:', blob);
+      console.log('Upload successful:', result);
       
-      // Return the blob URL and metadata
+      // Return the result with pasteId added
       return NextResponse.json({
-        url: blob.url,
-        uploadedAt: new Date().toISOString(),
-        filename: filename,
+        ...result,
         pasteId: pasteId
       });
       

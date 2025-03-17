@@ -11,6 +11,7 @@ import { eq, and, desc, count, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { add } from "date-fns";
 import { hash, compare } from "bcryptjs";
+import { fileManager } from "@/lib/file-manager";
 
 // Constants for paste expiry
 const GUEST_MAX_EXPIRY_DAYS = 7;
@@ -216,9 +217,16 @@ export const pasteRouter = createTRPCRouter({
         });
       }
 
+      // Delete associated files first
+      const filesDeleted = await fileManager.deleteFilesByPasteId(input.id, ctx.session.user.id);
+
+      // Then delete the paste
       await ctx.db.delete(pastes).where(eq(pastes.id, input.id));
 
-      return { success: true };
+      return { 
+        success: true, 
+        filesDeleted 
+      };
     }),
 
   // Delete all pastes for the current user (PANIC DELETE)
@@ -232,12 +240,16 @@ export const pasteRouter = createTRPCRouter({
         });
       }
 
+      // Delete all files for this user first
+      const filesDeleted = await fileManager.deleteAllUserFiles(userId);
+
       // Delete all pastes for this user
       const result = await ctx.db.delete(pastes).where(eq(pastes.userId, userId));
 
       return { 
         success: true,
-        message: "All your pastes have been deleted" 
+        message: "All your pastes have been deleted",
+        filesDeleted
       };
     }),
 
