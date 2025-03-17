@@ -35,7 +35,7 @@ export class StorageService {
     // Using Vercel Blob for now
     const blob = await put(filename, file, {
       access: 'public',
-      addRandomSuffix: options.addRandomSuffix || false,
+      addRandomSuffix: options.addRandomSuffix ?? false,
     });
 
     return {
